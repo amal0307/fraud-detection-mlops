@@ -1,14 +1,14 @@
 # Fraud Detection MLOps System
 
-End-to-end machine learning system that detects fraudulent credit card transactions in real time, monitors itself for data drift, and automatically retrains when model performance degrades — all observable through a live dashboard.
+End-to-end machine learning system that detects fraudulent credit card transactions in real time, monitors itself for data drift, and automatically retrains when model performance degrades. All observable through a live dashboard.
 
-**Live prediction latency: 11.9 ms avg · 27.9 ms p99 · ~50 transactions/sec sustained on a laptop.**
+**Live prediction latency: 11.9 ms avg, 27.9 ms p99, ~50 transactions/sec sustained on a laptop.**
 
 ---
 
 ## Why this project exists
 
-Most ML projects stop at training a model. This one focuses on what happens *after*: serving predictions at low latency, monitoring drift in production, retraining the model automatically when the world changes, and keeping a full audit trail of every model decision — the actual job of an ML engineer.
+Most ML projects stop at training a model. This one focuses on what happens *after*: serving predictions at low latency, monitoring drift in production, retraining the model automatically when the world changes, and keeping a full audit trail of every model decision. The actual job of an ML engineer.
 
 ---
 
@@ -47,12 +47,12 @@ Most ML projects stop at training a model. This one focuses on what happens *aft
 | Layer | Tool | Why |
 |---|---|---|
 | Model | **XGBoost** | Industry standard for tabular fraud, handles class imbalance via `scale_pos_weight` |
-| Explainability | **SHAP (TreeExplainer)** | Per-prediction feature attributions — required for regulated industries |
+| Explainability | **SHAP (TreeExplainer)** | Per-prediction feature attributions, required for regulated industries |
 | Drift detection | **PSI + KS test** | PSI for ops interpretability, KS for statistical rigor |
 | Serving | **FastAPI + Uvicorn** | Async, auto-generated OpenAPI docs, ~40ms median latency |
-| Streaming | **Redpanda (Kafka-compatible)** | Lightweight Kafka — no JVM, no ZooKeeper |
+| Streaming | **Redpanda (Kafka-compatible)** | Lightweight Kafka, no JVM, no ZooKeeper |
 | Storage | **PostgreSQL** | Transactions, predictions, drift metrics, retraining audit log |
-| Model registry | **MLflow** | Experiment tracking + versioned model registry |
+| Model registry | **MLflow** | Experiment tracking and versioned model registry |
 | Dashboard | **Streamlit + Plotly** | Live ops view, auto-refreshes every 10s |
 | Orchestration | **Docker Compose** | One-command stack: `docker-compose up` |
 
@@ -62,7 +62,7 @@ Most ML projects stop at training a model. This one focuses on what happens *aft
 
 ### Live operations dashboard
 ![Live ops dashboard](docs/screenshots/Dashboard.png)
-*Throughput, latency percentiles, and prediction volume — all auto-refreshing.*
+*Throughput, latency percentiles, and prediction volume, all auto-refreshing.*
 
 ### Drift detection firing
 ![Drift detection](docs/screenshots/Drift.png)
@@ -70,11 +70,11 @@ Most ML projects stop at training a model. This one focuses on what happens *aft
 
 ### Retraining audit trail
 ![Retraining audit](docs/screenshots/Retraining_audit.png)
-*Every retraining attempt — promoted or rejected — is logged with the trigger reason, old/new AUC, and the decision rationale. Compliance-ready.*
+*Every retraining attempt, promoted or rejected, is logged with the trigger reason, old/new AUC, and the decision rationale. Compliance-ready.*
 
 ### Per-prediction SHAP explanations
 ![SHAP explanations](docs/screenshots/SHAP.png)
-*Every prediction is logged with its top 3 SHAP features — what a fraud analyst would need to investigate.*
+*Every prediction is logged with its top 3 SHAP features. What a fraud analyst would need to investigate.*
 
 ---
 
@@ -82,7 +82,7 @@ Most ML projects stop at training a model. This one focuses on what happens *aft
 
 - **Sub-30ms p99 latency** end-to-end (model + SHAP + DB write)
 - **Automated drift detection** using PSI and KS test on 29 features
-- **Champion/challenger retraining** — new models are only promoted if they beat the current model by a meaningful AUC-PR margin AND don't regress on recall
+- **Champion/challenger retraining** where new models are only promoted if they beat the current model by a meaningful AUC-PR margin AND don't regress on recall
 - **Full audit trail** of every retraining attempt for regulatory compliance
 - **Per-prediction explainability** via SHAP top-features stored as JSONB in Postgres
 - **Streaming ingestion** via Kafka-compatible Redpanda with configurable rate and synthetic drift injection
@@ -178,10 +178,10 @@ fraud-detection-mlops/
 ## Design decisions worth highlighting
 
 - **PSI bins are fixed at training-time quantiles**, not recomputed on current data. Re-binning would let the metric chase the drift instead of measuring it.
-- **Class imbalance is handled with `scale_pos_weight`** rather than SMOTE — synthetic minority oversampling can cause tree models to overfit on interpolated noise.
+- **Class imbalance is handled with `scale_pos_weight`** rather than SMOTE. Synthetic minority oversampling can cause tree models to overfit on interpolated noise.
 - **AUC-PR is the primary metric**, not AUC-ROC, because the 0.17% fraud rate makes AUC-ROC misleadingly optimistic.
 - **The promotion logic encodes business cost**: a new model with marginally higher AUC-PR but lower recall is rejected, because missed fraud costs more than false positives.
-- **Both inserts (transaction + prediction) happen in one DB transaction** — no orphaned rows if anything fails mid-flight.
+- **Both inserts (transaction + prediction) happen in one DB transaction**. No orphaned rows if anything fails mid-flight.
 - **MLflow runs with `--serve-artifacts`** so clients fetch model artifacts over HTTP, decoupling the client from the server's filesystem.
 
 ---
