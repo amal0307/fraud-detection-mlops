@@ -1,0 +1,90 @@
+services:
+  # The database — stores transactions, predictions, drift metrics
+  postgres:
+    image: postgres:16-alpine
+    container_name: fraud_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MLflow — model versioning and experiment tracking
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    container_name: fraud_mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlflow/mlflow.db --artifacts-destination /mlflow/artifacts --serve-artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # FastAPI prediction service
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: fraud_api
+    env_file: .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      POSTGRES_HOST: postgres
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+
+  # One-shot training job (run with: docker-compose run --rm train)
+  train:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.train
+    container_name: fraud_train
+    env_file: .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      POSTGRES_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+
+  # Redpanda — Kafka-compatible streaming broker
+  redpanda:
+    image: redpandadata/redpanda:v23.3.5
+    container_name: fraud_redpanda
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+    ports:
+      - "9092:9092" # external clients (your laptop)
+      - "9644:9644" # admin API
+
+volumes:
+  postgres_data:
+  mlflow_data:

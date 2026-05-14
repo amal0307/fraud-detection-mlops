@@ -1,0 +1,27 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Data (too big for git)
+data/raw/*.csv
+data/reference/*.pkl
+
+# Model artifacts
+mlruns/
+mlflow.db
+*.joblib
+*.pkl
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

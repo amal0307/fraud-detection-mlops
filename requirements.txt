@@ -1,0 +1,38 @@
+# Core ML
+xgboost==2.0.3
+scikit-learn==1.4.0
+pandas==2.2.0
+numpy==1.26.3
+imbalanced-learn==0.12.0
+
+# Explainability
+shap==0.44.1
+
+# Drift detection
+evidently==0.4.16
+
+# API
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+
+# Model registry & tracking
+mlflow==2.10.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.25
+
+# Dashboard
+streamlit==1.30.0
+plotly==5.18.0
+
+# Streaming (we'll use this in Step 6)
+kafka-python==2.0.2
+
+# Config
+python-dotenv==1.0.0
+
+# Testing & benchmarking
+pytest==7.4.4
+locust==2.20.0
