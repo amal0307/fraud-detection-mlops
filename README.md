@@ -1,4 +1,4 @@
-# Fraud Detection — MLOps System
+# Fraud Detection MLOps System
 
 End-to-end machine learning system that detects fraudulent credit card transactions in real time, monitors itself for data drift, and automatically retrains when model performance degrades — all observable through a live dashboard.
 
